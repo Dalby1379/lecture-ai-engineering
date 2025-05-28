@@ -172,3 +172,43 @@ def test_model_reproducibility(sample_data, preprocessor):
         predictions1, predictions2
     ), "モデルの予測結果に再現性がありません"
 
+
+def test_model_specific_prediction(train_model):
+    """特定の入力に対する予測結果が期待通りか検証する"""
+    model, _, _ = train_model
+
+    specific_input_data = pd.DataFrame(
+        {
+            "Pclass": [3],
+            "Sex": ["male"],
+            "Age": [22.0],
+            "SibSp": [1],
+            "Parch": [0],
+            "Fare": [7.25],
+            "Embarked": ["S"],
+        }
+    )
+    expected_prediction = np.array([0])
+
+    predictions = model.predict(specific_input_data)
+    assert np.array_equal(
+        predictions, expected_prediction
+    ), f"特定の入力に対する予測が期待値と異なります。予測: {predictions}, 期待値: {expected_prediction}"
+
+
+BASELINE_ACCURACY = 0.78  # ベースライン精度を設定
+
+
+def test_model_performance_degradation(train_model):
+    """現在のモデルの精度がベースラインを下回っていないか検証する"""
+    model, X_test, y_test = train_model
+
+    y_pred = model.predict(X_test)
+    current_accuracy = accuracy_score(y_test, y_pred)
+
+    print(
+        f"現在のモデルの精度: {current_accuracy}, ベースライン精度: {BASELINE_ACCURACY}"
+    )
+    assert (
+        current_accuracy >= BASELINE_ACCURACY
+    ), f"モデルの性能がベースラインを下回りました。現在: {current_accuracy}, ベースライン: {BASELINE_ACCURACY}"
